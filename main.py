@@ -3,7 +3,7 @@ import serial
 from datetime import datetime
 import pandas as pd
 import time
-import os
+import requests
 import RPi.GPIO as GPIO
 
 
