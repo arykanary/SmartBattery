@@ -1,0 +1,25 @@
+Name,Value,Unit
+P1Version,50,-
+DateTimeElectric,2304-02-08 19:16:59,-
+EquipmentIDElectric,4530303531303035333839373739313139,-
+ElectricityToClient(1),004175.261,kWh
+ElectricityToClient(2),004406.907,kWh
+ElectricityByClient(1),000000.000,kWh
+ElectricityByClient(2),000000.000,kWh
+TariffIndicator,0002,-
+ActualElectricityToClient,00.279,kW
+ActualElectricityByClient,00.000,kW
+NPowerFailuresAny,00013,-
+NLongPowerFailuresAny,00002,-
+LongPowerFailureLog,1,-
+NSagsL1,00008,-
+NSwellsL1,00002,-
+Message,,-
+InstantVoltageL1,233.4,V
+InstantCurrentL1,001,A
+Instant+PowerL1,00.279,kW
+Instant-PowerL1,00.000,kW
+DeviceTypeGas,003,-
+EquipmentIDGas,4730303339303031393433333238393139,-
+DateTimeGas,2304-02-08 19:15:08,-
+GasToClient,04847.375,m3
