@@ -2,8 +2,9 @@
 
 import socket
 
-HOST = "192.168.68.58"  # The server's hostname or IP address
-PORT = 65432  # The port used by the server
+HOST = "192.168.68.58"  # Standard loopback interface address (localhost, RPI 4)
+# HOST = "192.168.68.55"  # Standard loopback interface address (localhost, RPI Zero 1)
+PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     s.connect((HOST, PORT))

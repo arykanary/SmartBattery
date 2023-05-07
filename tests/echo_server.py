@@ -1,8 +1,10 @@
-# echo_server.py
-
 import socket
+from signal import signal, SIGPIPE, SIG_DFL
 
-HOST = "192.168.68.58"  # Standard loopback interface address (localhost)
+signal(SIGPIPE,SIG_DFL)
+
+HOST = "192.168.68.58"  # Standard loopback interface address (localhost, RPI 4)
+# HOST = "192.168.68.55"  # Standard loopback interface address (localhost, RPI Zero 1)
 PORT = 65432  # Port to listen on (non-privileged ports are > 1023)
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -15,4 +17,4 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             data = conn.recv(1024)
             if data:
                 print(data)
-            conn.sendall('This is a test message')
+            conn.sendall(b'Hi back')
