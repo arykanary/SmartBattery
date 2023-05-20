@@ -3,3 +3,4 @@ pandas==1.5
 pyserial==3.5
 # RPi.GPIO==0.7
 requests
+adafruit-circuitpython-mcp3xxx

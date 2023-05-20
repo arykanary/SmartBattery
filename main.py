@@ -5,7 +5,13 @@ import pandas as pd
 import time
 import os
 import requests
+# RPI specific stuff
 import RPi.GPIO as GPIO
+import busio
+import digitalio
+import board
+import adafruit_mcp3xxx.mcp3004 as MCP
+from adafruit_mcp3xxx.analog_in import AnalogIn
 
 
 # == Data-source objects ==
@@ -88,7 +94,7 @@ class SmartMeter:
             .set_index('Name')
 
         dts = [x for x in df.index if 'DateTime' in x]
-        dtv = [datetime.strptime(x.replace('S', ''), r'%Y%m%d%H%M%S') for x in df.loc[dts, 'Value'].values]
+        dtv = [datetime.strptime(x.replace('S', ''), r'%y%m%d%H%M%S') for x in df.loc[dts, 'Value'].values]
         for s, v in zip(dts, dtv):
             df.loc[s, 'Value'] = v
 
@@ -104,7 +110,10 @@ class SmartMeter:
         self.read_meter()
         self.reading2df()
         self.update_log()
-        return self.reading.loc[names]
+        if names:
+            return self.reading.loc[names]
+        else:
+            return self.reading
         
 
 class SolarPanel:
@@ -175,7 +184,10 @@ class RpiBoard:
         self.active_pins = {}
 
     def __enter__(self):
-        GPIO.setmode(self.mode)
+        if not GPIO.getmode():
+            GPIO.setmode(self.mode)
+        else:
+            self.mode = GPIO.getmode()
 
     def __exit__(self, *args, **kwargs):
         GPIO.cleanup()
@@ -211,26 +223,21 @@ class RpiPin:
         GPIO.setup(self._pin, func)
 
 
-# == Combine it all ==
-def run(freq=5):
-    """combine everything and run in a loop"""
-    with RpiBoard(GPIO.BOARD) as rpi_board:
-        while True:
-            charge = True
-
-            #### Read all the data points ####
-            smartm = SmartMeter(port="/dev/ttyUSB0", baudrate=115200, bytesize=8, parity="N", stopbits=1, timeout=5, xonxoff=False, rtscts=False)  # RPI4
-            date, to, by = smartm()
-            
-            charge &= (by - to + 50) > 0
-
-            #### Define the board and pins ####
-            rel_pin = RpiPin(11)
-            rel_pin.function = GPIO.OUT
-
-            rel_pin.state = not rel_pin.state
-
-            time.sleep(freq)
+def mcp3004_chan():
+    spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)  # create the spi bus
+    cs = digitalio.DigitalInOut(board.D5)  # create the cs (chip select)
+    mcp = MCP.MCP3004(spi, cs)  # create the mcp object
+    return AnalogIn(mcp, MCP.P0)  # create an analog input channel on pin 0
+    
+    
+def read_chan(chan, calib=(0., 5.)):
+    measurement = chan.voltage
+    for n, c in enumerate(calib):
+        if n == 0:
+            measurement += c
+        else:
+            measurement *= c**n
+    return chan.value, chan.voltage, measurement
 
 
 if __name__ == "__main__":
@@ -257,7 +264,3 @@ if __name__ == "__main__":
 
     pass  # everything before the pass has been tested and works.
     # run()
-
-    with RpiBoard(GPIO.BOARD) as rpi_board:
-        led_pin = RpiPin(40)
-        led_pin.function = GPIO.IN

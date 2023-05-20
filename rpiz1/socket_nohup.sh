@@ -1,0 +1,1 @@
+nohup ./run_socket.sh > _data/socket/out.log 2> _data/socket/err.log < /dev/null &

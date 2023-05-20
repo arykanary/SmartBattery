@@ -1,0 +1,1 @@
+nohup ./run_smartmeter.sh > _data/P1_log/out.log 2> _data/P1_log/err.log < /dev/null &
