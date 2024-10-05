@@ -43,7 +43,11 @@ class SmartMeter:
         self.port, self.baudrate, self.bytesize, self.parity = port, baudrate, bytesize, parity
         self.stopbits, self.timeout, self.xonxoff, self.rtscts = stopbits, timeout, xonxoff, rtscts
 
-        self.mapper = pd.read_excel('Definitions.xlsx', 'Sheet1', index_col='OBIS reference')
+        self.mapper = pd.read_excel(
+            os.path.join(os.path.dirname(__file__), 'Definitions.xlsx'),
+            'Sheet1',
+            index_col='OBIS reference'
+        )
         self.mapper.index = self.mapper.index.map(lambda x: x.replace('.255', ''))
 
         self.serial_out = []
