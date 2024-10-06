@@ -1,38 +1,23 @@
 import re
-import serial
 import os
 import requests
 import yaml
+import numpy as np
+from datetime import datetime, timedelta
+import json
+
 # RPI specific stuff
-import RPi.GPIO as GPIO
-#import busio
-#import digitalio
-#import board
-#import adafruit_mcp3xxx.mcp3004 as MCP
-#from adafruit_mcp3xxx.analog_in import AnalogIn
-
-
-# == Data-source objects ==
-class EexApi:
-    """This class handles all interactions with the EEX API to get the data about current prices, volumnes, etc.
-    https://www.eex.com/en/market-data/eex-group-datasource/api
-    """
-    # ToDo: API is fucking expensive
-    base_url = "https://api.eex.com/data/spot/power/monthly/auction/nl"
-
-    def __init__(self):
-        pass
-
-    def call_api(self):
-        response = requests.get(self.base_url)
-
-        if response.status_code == 200:
-            return response.json()
-        else:
-            return response.status_code
-
-    def retrieve_value(self, name):
-        pass
+try:
+    import serial
+    import RPi.GPIO as GPIO
+    #import busio
+    #import digitalio
+    #import board
+    #import adafruit_mcp3xxx.mcp3004 as MCP
+    #from adafruit_mcp3xxx.analog_in import AnalogIn
+except ImportError:
+    import warnings
+    warnings.warn('Not a Raspberry Pi')
 
 
 class SmartMeter:
@@ -85,20 +70,66 @@ class SmartMeter:
         return reading
 
 
-class SolarPanel:
-    """This class handles all interactions with the solar-panel control system to get the data about current charge, state, etc."""
-    # ToDo: Can start this once the solarpanel are in place.
-    def __init__(self):
-        pass
+class CheckCharge:
+    base_date = datetime(2020, 1, 1)
+
+    def __init__(self, threshold_bypass: float=.1, threshold_charge: float=.1, history: timedelta=timedelta(minutes=1)):
+        self._dates  = []
+        self._values = []
+
+        self.t_bypass = threshold_bypass
+        self.t_charge = threshold_charge
+        self.history          = history
+
+    def __call__(self):
+        self.get_data()
+        self.purge_history()
+        bypass, charge, both = self.decide()
+        return bypass, charge, both
+    
+    def get_data(self):
+        resp = requests.request('GET', 'http://192.168.68.59:8000/')
+        resp = eval(resp.content.decode())
+        json.dump(resp, os.path.join('_data', 'P1', datetime.now().strftime(r"%Y%m%d%H%M%S")))
+
+        _date = resp.get('DateTimeElectric')
+        _tocl = resp.get('ActualElectricityToClient')
+        _bycl = resp.get('ActualElectricityByClient')
+
+        if (_date is not None and _tocl is not None and _bycl is not None):
+            _date = _date[0]
+            _tocl = float(_tocl[0])
+            _bycl = float(_bycl[0])
+            _date = datetime(2000+int(_date[0:2]), int(_date[2:4]), int(_date[4:6]),
+                             int(_date[6:8]), int(_date[8:10]), int(_date[10:12]))
+
+            self._dates.append((_date-self.base_date).total_seconds())
+            self._values.append(-_tocl if _tocl > 0 else _bycl)
+
+    def purge_history(self):
+        try:
+            purge_date = self._dates[-1] - self.history.total_seconds()
+            self._dates  = [d for d, v in zip(self._dates, self._values) if d > purge_date]
+            self._values = [v for d, v in zip(self._dates, self._values) if d > purge_date]
+        except IndexError:
+            pass
+
+    def decide(self):
+        if len(self._values) < 2:
+            return False, False, False
+        
+        pol = np.polynomial.Polynomial.fit(self._dates, self._values, 1)
+        _p = pol((datetime.now()-self.base_date).total_seconds()+self.history.total_seconds())
+        _m = np.mean(self._values)
+
+        return (
+            all([(_m - self.t_bypass)>0, _p>0,]),  # Bypass
+            all([(_m - self.t_charge)>0, _p>0,]),  # Charge
+            all([(_m - (self.t_charge + self.t_bypass))>0, _p>0,]),  # both
+        )
 
 
-class Predict:
-    """This class can be used to attempt to predict power usage, price, etc."""
-    def __init__(self):
-        pass
-
-
-# == RPI interaction objects ==
+# # == RPI interaction objects ==
 class RpiBoard:
     """This class creates a sustainable way of setting up the board.
     
@@ -192,15 +223,15 @@ class RpiPin:
         GPIO.setup(self._pin, func)
 
 
-def mcp3004_chan():
-    spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)  # create the spi bus
-    cs = digitalio.DigitalInOut(board.D5)  # create the cs (chip select)
-    mcp = MCP.MCP3004(spi, cs, 5.)  # create the mcp object
-    return AnalogIn(mcp, MCP.P0)  # create an analog input channel on pin 0
+# def mcp3004_chan():
+#     spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)  # create the spi bus
+#     cs = digitalio.DigitalInOut(board.D5)  # create the cs (chip select)
+#     mcp = MCP.MCP3004(spi, cs, 5.)  # create the mcp object
+#     return AnalogIn(mcp, MCP.P0)  # create an analog input channel on pin 0
     
-    
-def read_chan(chan, calib=(0., 5.)):
-    measurement = 0.
-    for n, c in enumerate(calib):
-        measurement += c * chan.voltage ** n
-    return chan.value, chan.voltage, measurement
+
+# def read_chan(chan, calib=(0., 5.)):
+#     measurement = 0.
+#     for n, c in enumerate(calib):
+#         measurement += c * chan.voltage ** n
+#     return chan.value, chan.voltage, measurement
