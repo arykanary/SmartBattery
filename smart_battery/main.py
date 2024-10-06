@@ -1,8 +1,5 @@
 import re
 import serial
-from datetime import datetime
-import pandas as pd
-import time
 import os
 import requests
 import yaml
@@ -82,7 +79,7 @@ class SmartMeter:
         """"""
         reading = self.read_meter()
         reading = dict(map(self.transform_item, reading))
-        print(*reading, sep='\n')
+        print(reading)
         exit()
         self.reading2df()
         if save:
