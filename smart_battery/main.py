@@ -5,7 +5,7 @@ import yaml
 import numpy as np
 from datetime import datetime, timedelta
 import json
-
+import warnings
 
 
 class SmartMeter:
@@ -120,17 +120,16 @@ class CheckCharge:
         )
 
 
-# # == RPI interaction objects ==
+# == RPI interaction objects ==
 # RPI specific stuff
 try:
     import serial
     import RPi.GPIO as GPIO
-    #import busio
-    #import digitalio
-    #import board
-    #import adafruit_mcp3xxx.mcp3004 as MCP
-    #from adafruit_mcp3xxx.analog_in import AnalogIn
-
+    import busio
+    import digitalio
+    import board
+    import adafruit_mcp3xxx.mcp3004 as MCP
+    from adafruit_mcp3xxx.analog_in import AnalogIn
         
     class RpiBoard:
         """This class creates a sustainable way of setting up the board.
@@ -239,5 +238,4 @@ try:
         return chan.value, chan.voltage, measurement
 
 except ImportError:
-    import warnings
     warnings.warn('Not a Raspberry Pi')
