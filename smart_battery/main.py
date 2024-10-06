@@ -78,7 +78,10 @@ class SmartMeter:
     def __call__(self, names=['DateTimeElectric', 'ActualElectricityToClient', 'ActualElectricityByClient'], save=True):
         """"""
         reading = self.read_meter()
-        reading = dict(map(self.transform_item, reading))
+        reading = map(self.transform_item, reading)
+        reading = filter(lambda x: x is not None, reading)
+        reading = filter(lambda x: all(len(y)!=0 for y in x), reading)
+        reading = dict(reading)
         print(*reading.items(), sep='\n')
         
 
