@@ -30,10 +30,10 @@ class EexApi:
             return response.json()
         else:
             return response.status_code
-        
+
     def retrieve_value(self, name):
         pass
-        
+
 
 class SmartMeter:
     """This class handles all interactions with the local smart meter to get the data about current use, day/night, etc."""
@@ -58,13 +58,14 @@ class SmartMeter:
         ) as ser:
             while True:
                 telegram_line = ser.readline()
-                out.append(telegram_line.decode('ascii').strip())
+                item = telegram_line.decode('ascii').strip()
+                out.append(item)
 
                 if re.match(b'(?=!)', telegram_line):
                     break
 
         return out
-    
+
     def transform_item(self, a):
         try:
             ki = a.index('(')
@@ -76,15 +77,13 @@ class SmartMeter:
         except ValueError:
             return a, ''
 
-    def __call__(self, names=['DateTimeElectric', 'ActualElectricityToClient', 'ActualElectricityByClient'], save=True):
-        """"""
+    def __call__(self):
         reading = self.read_meter()
         reading = map(self.transform_item, reading)
-        # reading = filter(lambda x: x is not None, reading)
-        # reading = filter(lambda x: any(len(y)!=0 for y in x), reading)
+        reading = filter(lambda x: any(len(y)!=0 for y in x), reading)
         reading = dict(reading)
-        print(*reading.items(), sep='\n')
-        
+        return reading
+
 
 class SolarPanel:
     """This class handles all interactions with the solar-panel control system to get the data about current charge, state, etc."""
@@ -205,29 +204,3 @@ def read_chan(chan, calib=(0., 5.)):
     for n, c in enumerate(calib):
         measurement += c * chan.voltage ** n
     return chan.value, chan.voltage, measurement
-
-
-if __name__ == "__main__":
-    # with RpiBoard(GPIO.BOARD) as rpi_board:
-    #     led_pin = RpiPin(40)
-    #     led_pin.function = GPIO.OUT
-
-    #     rel_pin = RpiPin(11)
-    #     rel_pin.function = GPIO.OUT
-
-    #     print('init state', led_pin.state, rel_pin.state)
-
-    #     while True:
-    #         led_pin.state = not led_pin.state
-    #         rel_pin.state = not rel_pin.state
-    #         print(led_pin.state, rel_pin.state)
-    #         c = input('continue?')
-    #         if len(c)>0:
-    #             break  
-
-    # smartm = SmartMeter(port="COM4", baudrate=115200, bytesize=8, parity="N", stopbits=1, timeout=5, xonxoff=False, rtscts=False)  # Windows
-    # smartm = SmartMeter(port="/dev/ttyUSB0", baudrate=115200, bytesize=8, parity="N", stopbits=1, timeout=5, xonxoff=False, rtscts=False)  # RPI4
-    # print(smartm())
-
-    pass  # everything before the pass has been tested and works.
-    # run()
