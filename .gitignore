@@ -1,2 +1,4 @@
 .venv
 _obs
+_data
+__pycache__

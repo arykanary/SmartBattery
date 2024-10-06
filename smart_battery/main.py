@@ -6,18 +6,6 @@ import numpy as np
 from datetime import datetime, timedelta
 import json
 
-# RPI specific stuff
-try:
-    import serial
-    import RPi.GPIO as GPIO
-    #import busio
-    #import digitalio
-    #import board
-    #import adafruit_mcp3xxx.mcp3004 as MCP
-    #from adafruit_mcp3xxx.analog_in import AnalogIn
-except ImportError:
-    import warnings
-    warnings.warn('Not a Raspberry Pi')
 
 
 class SmartMeter:
@@ -72,6 +60,7 @@ class SmartMeter:
 
 class CheckCharge:
     base_date = datetime(2020, 1, 1)
+    data_path = os.path.join('_data', 'P1')
 
     def __init__(self, threshold_bypass: float=.1, threshold_charge: float=.1, history: timedelta=timedelta(minutes=1)):
         self._dates  = []
@@ -79,7 +68,8 @@ class CheckCharge:
 
         self.t_bypass = threshold_bypass
         self.t_charge = threshold_charge
-        self.history          = history
+        self.history  = history
+        os.makedirs(self.data_path, exist_ok=True)
 
     def __call__(self):
         self.get_data()
@@ -90,7 +80,8 @@ class CheckCharge:
     def get_data(self):
         resp = requests.request('GET', 'http://192.168.68.59:8000/')
         resp = eval(resp.content.decode())
-        json.dump(resp, os.path.join('_data', 'P1', datetime.now().strftime(r"%Y%m%d%H%M%S")))
+        with open(os.path.join(self.data_path, datetime.now().strftime(r"%Y%m%d%H%M%S")+'.json'), 'w') as jf:
+            json.dump(resp, jf)
 
         _date = resp.get('DateTimeElectric')
         _tocl = resp.get('ActualElectricityToClient')
@@ -130,108 +121,123 @@ class CheckCharge:
 
 
 # # == RPI interaction objects ==
-class RpiBoard:
-    """This class creates a sustainable way of setting up the board.
-    
-    https://sourceforge.net/p/raspberry-gpio-python/wiki/Home/
-    """
-    pins = [
-    # 'BoardNo', 'BCMNo', 'Type'
-        (1,  None, '3.3V'),
-        (2,  None, '5.0V'),
-        (3,  2,    ('GPIO', 'SDA1', 'I2C')),
-        (4,  None, '5.0V'),
-        (5,  3,    ('GPIO', 'SDA1', 'I2C')),
-        (6,  None, 'GROUND'),
-        (7,  4,    ('GPIO', 'GCLK')),
-        (8,  14,   ('GPIO', 'TX UART')),
-        (9,  None, 'GROUND'),
-        (10, 15,   ('GPIO', 'RX UART')),
-        (11, 17,   'GPIO'),
-        (12, 18,   'GPIO'),
-        (13, 27,   'GPIO'),
-        (14, None, 'GROUND'),
-        (15, 22,   'GPIO'),
-        (16, 23,   'GPIO'),
-        (17, None, '3.3V'),
-        (18, 24,   'GPIO'),
-        (19, 20,   ('MOSI', 'SPI')),
-        (20, None, 'GROUND'),
-        (21, 9,    ('MISO', 'SPI')),
-        (22, 25,   'GPIO'),
-        (23, 11,   ('SCLK', 'SPI')),
-        (24, 8,    ('CEO_N', 'SPI')),
-        (25, None, 'GROUND'),
-        (26, 7,    ('CE1_N', 'SPI')),
-        (27, None, 'RESERVED'),
-        (28, None, 'RESERVED'),
-        (29, 5,    'GPIO'),
-        (30, None, 'GROUND'),
-        (31, 6,    'GPIO'),
-        (32, 12,   'GPIO'),
-        (33, 13,   'GPIO'),
-        (34, None, 'GROUND'),
-        (35, 19,   'GPIO'),
-        (36, 16,   'GPIO'),
-        (37, 26,   'GPIO'),
-        (38, 20,   'GPIO'),
-        (39, None, 'GROUND'),
-        (40, 21,   'GPIO'),
-    ]
+# RPI specific stuff
+try:
+    import serial
+    import RPi.GPIO as GPIO
+    #import busio
+    #import digitalio
+    #import board
+    #import adafruit_mcp3xxx.mcp3004 as MCP
+    #from adafruit_mcp3xxx.analog_in import AnalogIn
 
-    def __init__(self, mode):
-        self.mode = mode
-        self.active_pins = {}
+        
+    class RpiBoard:
+        """This class creates a sustainable way of setting up the board.
+        
+        https://sourceforge.net/p/raspberry-gpio-python/wiki/Home/
+        """
+        pins = [
+        # 'BoardNo', 'BCMNo', 'Type'
+            (1,  None, '3.3V'),
+            (2,  None, '5.0V'),
+            (3,  2,    ('GPIO', 'SDA1', 'I2C')),
+            (4,  None, '5.0V'),
+            (5,  3,    ('GPIO', 'SDA1', 'I2C')),
+            (6,  None, 'GROUND'),
+            (7,  4,    ('GPIO', 'GCLK')),
+            (8,  14,   ('GPIO', 'TX UART')),
+            (9,  None, 'GROUND'),
+            (10, 15,   ('GPIO', 'RX UART')),
+            (11, 17,   'GPIO'),
+            (12, 18,   'GPIO'),
+            (13, 27,   'GPIO'),
+            (14, None, 'GROUND'),
+            (15, 22,   'GPIO'),
+            (16, 23,   'GPIO'),
+            (17, None, '3.3V'),
+            (18, 24,   'GPIO'),
+            (19, 20,   ('MOSI', 'SPI')),
+            (20, None, 'GROUND'),
+            (21, 9,    ('MISO', 'SPI')),
+            (22, 25,   'GPIO'),
+            (23, 11,   ('SCLK', 'SPI')),
+            (24, 8,    ('CEO_N', 'SPI')),
+            (25, None, 'GROUND'),
+            (26, 7,    ('CE1_N', 'SPI')),
+            (27, None, 'RESERVED'),
+            (28, None, 'RESERVED'),
+            (29, 5,    'GPIO'),
+            (30, None, 'GROUND'),
+            (31, 6,    'GPIO'),
+            (32, 12,   'GPIO'),
+            (33, 13,   'GPIO'),
+            (34, None, 'GROUND'),
+            (35, 19,   'GPIO'),
+            (36, 16,   'GPIO'),
+            (37, 26,   'GPIO'),
+            (38, 20,   'GPIO'),
+            (39, None, 'GROUND'),
+            (40, 21,   'GPIO'),
+        ]
 
-    def __enter__(self):
-        if not GPIO.getmode():
-            GPIO.setmode(self.mode)
-        else:
-            self.mode = GPIO.getmode()
+        def __init__(self, mode):
+            self.mode = mode
+            self.active_pins = {}
 
-    def __exit__(self, *args, **kwargs):
-        GPIO.cleanup()
-    
-    @property
-    def board(self):
-        return GPIO.RPI_INFO
-    
+        def __enter__(self):
+            if not GPIO.getmode():
+                GPIO.setmode(self.mode)
+            else:
+                self.mode = GPIO.getmode()
 
-class RpiPin:
-    """This class can be used to easily interact with a pin on a RPI"""
-    def __init__(self, pin: int):
-        self._pin = pin
-        self._func = None
-    
-    @property
-    def state(self):
-        return GPIO.input(self._pin)
+        def __exit__(self, *args, **kwargs):
+            GPIO.cleanup()
+        
+        @property
+        def board(self):
+            return GPIO.RPI_INFO
+        
 
-    states = [GPIO.IN, GPIO.OUT, GPIO.SPI, GPIO.I2C, GPIO.HARD_PWM, GPIO.SERIAL, GPIO.UNKNOWN]
-    @state.setter
-    def state(self, state):
-        GPIO.output(self._pin, state)
-    
-    @property
-    def function(self):
-        self._func = GPIO.gpio_function(self._pin)
-        return self._func
-    
-    @function.setter
-    def function(self, func):
-        self._func = func
-        GPIO.setup(self._pin, func)
+    class RpiPin:
+        """This class can be used to easily interact with a pin on a RPI"""
+        def __init__(self, pin: int):
+            self._pin = pin
+            self._func = None
+        
+        @property
+        def state(self):
+            return GPIO.input(self._pin)
+
+        states = [GPIO.IN, GPIO.OUT, GPIO.SPI, GPIO.I2C, GPIO.HARD_PWM, GPIO.SERIAL, GPIO.UNKNOWN]
+        @state.setter
+        def state(self, state):
+            GPIO.output(self._pin, state)
+        
+        @property
+        def function(self):
+            self._func = GPIO.gpio_function(self._pin)
+            return self._func
+        
+        @function.setter
+        def function(self, func):
+            self._func = func
+            GPIO.setup(self._pin, func)
 
 
-# def mcp3004_chan():
-#     spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)  # create the spi bus
-#     cs = digitalio.DigitalInOut(board.D5)  # create the cs (chip select)
-#     mcp = MCP.MCP3004(spi, cs, 5.)  # create the mcp object
-#     return AnalogIn(mcp, MCP.P0)  # create an analog input channel on pin 0
-    
+    def mcp3004_chan():
+        spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)  # create the spi bus
+        cs = digitalio.DigitalInOut(board.D5)  # create the cs (chip select)
+        mcp = MCP.MCP3004(spi, cs, 5.)  # create the mcp object
+        return AnalogIn(mcp, MCP.P0)  # create an analog input channel on pin 0
+        
 
-# def read_chan(chan, calib=(0., 5.)):
-#     measurement = 0.
-#     for n, c in enumerate(calib):
-#         measurement += c * chan.voltage ** n
-#     return chan.value, chan.voltage, measurement
+    def read_chan(chan, calib=(0., 5.)):
+        measurement = 0.
+        for n, c in enumerate(calib):
+            measurement += c * chan.voltage ** n
+        return chan.value, chan.voltage, measurement
+
+except ImportError:
+    import warnings
+    warnings.warn('Not a Raspberry Pi')
