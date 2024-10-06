@@ -5,6 +5,7 @@ import pandas as pd
 import time
 import os
 import requests
+import yaml
 # RPI specific stuff
 import RPi.GPIO as GPIO
 #import busio
@@ -43,15 +44,8 @@ class SmartMeter:
         self.port, self.baudrate, self.bytesize, self.parity = port, baudrate, bytesize, parity
         self.stopbits, self.timeout, self.xonxoff, self.rtscts = stopbits, timeout, xonxoff, rtscts
 
-        self.mapper = pd.read_excel(
-            os.path.join(os.path.dirname(__file__), 'Definitions.xlsx'),
-            'Sheet1',
-            index_col='OBIS reference'
-        )
-        self.mapper.index = self.mapper.index.map(lambda x: x.replace('.255', ''))
-
-        self.serial_out = []
-        self.reading = pd.DataFrame()
+        with open(os.path.join(os.path.dirname(__file__), 'definitions.yaml')) as yf:
+            self.defs = yaml.safe_load(yf)['definitions']
 
     def read_meter(self):
         out = []
@@ -71,51 +65,25 @@ class SmartMeter:
 
                 if re.match(b'(?=!)', telegram_line):
                     break
-                
+
         return out
     
-    def transform(self, tel):
-        """Converts tel to a list of key-value pairs"""
+    def transform_item(self, a):
         try:
-            trans = [x for x in self.mapper.index if x in tel][0]
-            name = self.mapper.loc[[trans], 'Short name'].values
-        except (ValueError, IndexError):
-            return list()
-        
-        tel = re.findall(r'\((.*?)\)', tel)
-        ntel = []
-        for t in tel:
-            t = t.split('*')
-            if len(t) == 1:
-                t += ['-']
-            ntel.append(t)
-        
-        return list(zip(name, *zip(*ntel)))
-
-    def reading2df(self):
-        trans =[x for item in self.serial_out for x in self.transform(item)]
-        print(trans)
-        exit()
-        # df = pd.DataFrame([x for item in self.serial_out for x in self.transform(item)])\
-        #     .rename({0: 'Name', 1: 'Value', 2: 'Unit'}, axis=1)\
-        #     .set_index('Name')
-
-        dts = [x for x in df.index if 'DateTime' in x]
-        dtv = [datetime.strptime(x.replace('S', ''), r'%y%m%d%H%M%S') for x in df.loc[dts, 'Value'].values]
-        for s, v in zip(dts, dtv):
-            df.loc[s, 'Value'] = v
-
-        self.reading = df
-
-    def update_log(self, logdir='_data/P1_log'):
-        """"""
-        date = self.reading.loc['DateTimeElectric', 'Value']
-        self.reading.to_csv(f'{logdir}/{date}.csv')
+            ki = a.index('(')
+            return (
+                self.defs[a[:ki]]['short_name'],
+                list(map(lambda x: x.split('*'), re.findall(r'\((.*?)\)', a[ki:])))
+            )
+        except ValueError:
+            return a, ''
 
     def __call__(self, names=['DateTimeElectric', 'ActualElectricityToClient', 'ActualElectricityByClient'], save=True):
         """"""
         reading = self.read_meter()
-        print(reading)
+        reading = dict(map(self.transform_item, reading))
+        print(*reading, sep='\n')
+        exit()
         self.reading2df()
         if save:
             self.update_log()
