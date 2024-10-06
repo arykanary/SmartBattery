@@ -72,7 +72,7 @@ class SmartMeter:
                 if re.match(b'(?=!)', telegram_line):
                     break
                 
-        self.serial_out = out
+        return out
     
     def transform(self, tel):
         """Converts tel to a list of key-value pairs"""
@@ -111,7 +111,9 @@ class SmartMeter:
 
     def __call__(self, names=['DateTimeElectric', 'ActualElectricityToClient', 'ActualElectricityByClient'], save=True):
         """"""
-        self.read_meter()
+        reading = self.read_meter()
+        print(reading)
+        exit()
         self.reading2df()
         if save:
             self.update_log()
