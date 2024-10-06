@@ -68,9 +68,10 @@ class SmartMeter:
     def transform_item(self, a):
         try:
             ki = a.index('(')
+            c = list(map(lambda x: x.split('*'), re.findall(r'\((.*?)\)', a[ki:])))
             return (
                 self.defs[a[:ki]]['short_name'],
-                list(map(lambda x: x.split('*'), re.findall(r'\((.*?)\)', a[ki:])))
+                [b for a in c for b in a]
             )
         except ValueError:
             return a, ''
