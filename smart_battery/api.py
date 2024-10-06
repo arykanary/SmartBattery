@@ -9,13 +9,8 @@ app = FastAPI()
 async def root():
     smartm = SmartMeter(
         '/dev/ttyUSB0',
-        115200,
-        8,
-        'N',
-        1,
-        5,
-        False,
-        False
+        115200, 8, 'N', 1, 5,
+        False, False,
     )
     while True:
         try:

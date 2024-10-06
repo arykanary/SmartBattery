@@ -75,7 +75,7 @@ class SmartMeter:
                 [b for a in c for b in a]
             )
         except ValueError:
-            return a, ''
+            return '', ''
 
     def __call__(self):
         reading = self.read_meter()
