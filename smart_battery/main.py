@@ -79,15 +79,7 @@ class SmartMeter:
         """"""
         reading = self.read_meter()
         reading = dict(map(self.transform_item, reading))
-        print(reading)
-        exit()
-        self.reading2df()
-        if save:
-            self.update_log()
-        if names:
-            return self.reading.loc[names]
-        else:
-            return self.reading
+        print(*reading.items(), sep='\n')
         
 
 class SolarPanel:

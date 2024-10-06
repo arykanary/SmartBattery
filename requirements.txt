@@ -1,6 +1,5 @@
-openpyxl==3.1
-pandas==1.5
 pyserial==3.5
 # RPi.GPIO==0.7
 requests
 adafruit-circuitpython-mcp3xxx
+pyyaml==6.0
