@@ -93,9 +93,12 @@ class SmartMeter:
         return list(zip(name, *zip(*ntel)))
 
     def reading2df(self):
-        df = pd.DataFrame([x for item in self.serial_out for x in self.transform(item)])\
-            .rename({0: 'Name', 1: 'Value', 2: 'Unit'}, axis=1)\
-            .set_index('Name')
+        trans =[x for item in self.serial_out for x in self.transform(item)]
+        print(trans)
+        exit()
+        # df = pd.DataFrame([x for item in self.serial_out for x in self.transform(item)])\
+        #     .rename({0: 'Name', 1: 'Value', 2: 'Unit'}, axis=1)\
+        #     .set_index('Name')
 
         dts = [x for x in df.index if 'DateTime' in x]
         dtv = [datetime.strptime(x.replace('S', ''), r'%y%m%d%H%M%S') for x in df.loc[dts, 'Value'].values]
@@ -113,7 +116,6 @@ class SmartMeter:
         """"""
         reading = self.read_meter()
         print(reading)
-        exit()
         self.reading2df()
         if save:
             self.update_log()
