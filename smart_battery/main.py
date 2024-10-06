@@ -79,7 +79,7 @@ class SmartMeter:
         """"""
         reading = self.read_meter()
         reading = map(self.transform_item, reading)
-        reading = filter(lambda x: x is not None, reading)
+        reading = filter(lambda x: x is None, reading)
         reading = filter(lambda x: all(len(y)!=0 for y in x), reading)
         reading = dict(reading)
         print(*reading.items(), sep='\n')
