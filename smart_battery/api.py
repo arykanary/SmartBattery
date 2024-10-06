@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from time import sleep
-from .main import SmartMeter
+from main import SmartMeter
 
 
 app = FastAPI()
