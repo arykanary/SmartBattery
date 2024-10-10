@@ -3,7 +3,7 @@ import os
 import requests
 import yaml
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta,_EPOCH
 import json
 import warnings
 
@@ -59,7 +59,7 @@ class SmartMeter:
 
 
 class CheckCharge:
-    base_date = datetime(2020, 1, 1)
+    base_date = _EPOCH
     data_path = os.path.join('_data', 'P1')
 
     def __init__(self, threshold_bypass: float=.1, threshold_charge: float=.1, history: timedelta=timedelta(minutes=1)):
@@ -112,7 +112,8 @@ class CheckCharge:
         pol = np.polynomial.Polynomial.fit(self._dates, self._values, 1)
         _p = pol((datetime.now()-self.base_date).total_seconds()+self.history.total_seconds())
         _m = np.mean(self._values)
-        print(f'On date: {self._dates[-1]} - Value {self._values[-1]:.2f} - An average of {_m:.2f} And prediction of {_p:.2f}')
+
+        print(f'On date: {datetime.fromtimestamp(self._dates[-1])} - Value {self._values[-1]:.2f} - An average of {_m:.2f} And prediction of {_p:.2f}')
 
         return (
             all([(_m - self.t_bypass)>0, _p>0,]),  # Bypass
