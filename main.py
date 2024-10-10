@@ -112,9 +112,9 @@ class CheckCharge:
         pol = np.polynomial.Polynomial.fit(self._dates, self._values, 1)
         _p = pol((datetime.now()-self.base_date).total_seconds()+self.history.total_seconds())
         _m = np.mean(self._values)
-        bypass = all([(_m - self.t_bypass)>0, _p>0,]),  # Bypass
-        charge = all([(_m - self.t_charge)>0, _p>0,]),  # Charge
-        both   = all([(_m - (self.t_charge + self.t_bypass))>0, _p>0,]),  # both
+        bypass = all([(_m - self.t_bypass)>0, _p>0,])
+        charge = all([(_m - self.t_charge)>0, _p>0,])
+        both   = all([(_m - (self.t_charge + self.t_bypass))>0, _p>0,])
         print(
             f'Latest date: {datetime.fromtimestamp(self._dates[-1])} with value {self._values[-1]:.2f} - '
             f'Bypass {bypass}, Charging {charge}, Both {both}'
