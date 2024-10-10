@@ -1,6 +1,6 @@
 from time import sleep
 import RPi.GPIO as GPIO
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from main import CheckCharge, RpiBoard, RpiPin
 
@@ -11,7 +11,11 @@ bypass_pin = RpiPin(4)
 charge_pin.function = GPIO.OUT
 bypass_pin.function = GPIO.OUT
 
-cc = CheckCharge()
+cc = CheckCharge(
+    threshold_bypass=.1,
+    threshold_charge=.1,
+    history=timedelta(minutes=15)
+)
 
 while True:
     bypass, charge, both = cc()
@@ -34,4 +38,4 @@ while True:
         charge_pin.state = 1
         bypass_pin.state = 1
 
-    sleep(10)
+    sleep(15)
