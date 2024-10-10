@@ -112,9 +112,7 @@ class CheckCharge:
         pol = np.polynomial.Polynomial.fit(self._dates, self._values, 1)
         _p = pol((datetime.now()-self.base_date).total_seconds()+self.history.total_seconds())
         _m = np.mean(self._values)
-        print(
-            f'On date: {self._date[-1]} - Value {self._values[-1]:.2f} - An average of {_m:.2f} And prediction of {_p:.2f}'
-        )
+        print(f'On date: {self._dates[-1]} - Value {self._values[-1]:.2f} - An average of {_m:.2f} And prediction of {_p:.2f}')
 
         return (
             all([(_m - self.t_bypass)>0, _p>0,]),  # Bypass
