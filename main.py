@@ -3,7 +3,7 @@ import os
 import requests
 import yaml
 import numpy as np
-from datetime import datetime, timedelta,_EPOCH
+from datetime import datetime, timedelta
 import json
 import warnings
 
@@ -59,7 +59,7 @@ class SmartMeter:
 
 
 class CheckCharge:
-    base_date = _EPOCH
+    base_date = datetime(1970, 1, 1)
     data_path = os.path.join('_data', 'P1')
 
     def __init__(self, threshold_bypass: float=.1, threshold_charge: float=.1, history: timedelta=timedelta(minutes=1)):
