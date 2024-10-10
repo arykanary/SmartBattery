@@ -62,7 +62,7 @@ class CheckCharge:
     base_date = datetime(1970, 1, 1)
     data_path = os.path.join('_data', 'P1')
 
-    def __init__(self, threshold_bypass: float=.1, threshold_charge: float=.1, history: timedelta=timedelta(minutes=1)):
+    def __init__(self, threshold_bypass: float=.1, threshold_charge: float=.1, history: timedelta=timedelta(minutes=15)):
         self._dates  = []
         self._values = []
 
