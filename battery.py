@@ -31,4 +31,4 @@ while True:
         charge_pin.state = 1
         bypass_pin.state = 1
 
-    sleep(1)
+    sleep(10)
