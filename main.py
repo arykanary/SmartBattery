@@ -86,6 +86,12 @@ class CheckCharge:
         _date = resp.get('DateTimeElectric')
         _tocl = resp.get('ActualElectricityToClient')
         _bycl = resp.get('ActualElectricityByClient')
+        print(
+            'Results:',
+            _date,
+            _tocl,
+            _bycl
+        )
 
         if (_date is not None and _tocl is not None and _bycl is not None):
             _date = _date[0]
