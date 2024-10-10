@@ -1,5 +1,6 @@
 from time import sleep
 import RPi.GPIO as GPIO
+from datetime import datetime
 
 from main import CheckCharge, RpiBoard, RpiPin
 
@@ -14,8 +15,10 @@ cc = CheckCharge()
 
 while True:
     bypass, charge, both = cc()
-    print(both)
-
+    print(
+        f'Latest date: {datetime.fromtimestamp(cc._dates[-1])} with value {cc._values[-1]:.2f} - '
+        f'Bypass {bypass}, Charging {charge}, Both {both}'
+    )
     # State changes
     if both:
         charge_pin.state = 0
