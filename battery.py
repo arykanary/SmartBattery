@@ -7,7 +7,7 @@ from main import CheckCharge, RpiBoard, RpiPin
 
 # Pins
 charge_pin = RpiPin(4)
-bypass_pin = RpiPin(4)
+bypass_pin = RpiPin(5)
 charge_pin.function = GPIO.OUT
 bypass_pin.function = GPIO.OUT
 
@@ -19,10 +19,7 @@ cc = CheckCharge(
 
 while True:
     bypass, charge, both = cc()
-    print(
-        f'Latest date: {datetime.fromtimestamp(cc._dates[-1])} with value {cc._values[-1]:.2f} - '
-        f'Bypass {bypass}, Charging {charge}, Both {both}'
-    )
+
     # State changes
     if both:
         charge_pin.state = 0
