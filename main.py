@@ -96,6 +96,8 @@ class CheckCharge:
 
             self._dates.append((_date-self.base_date).total_seconds())
             self._values.append(-_tocl if _tocl > 0 else _bycl)
+        
+        return resp
 
     def purge_history(self):
         try:

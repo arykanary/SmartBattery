@@ -17,6 +17,8 @@ cc = CheckCharge(
     history=timedelta(minutes=15)
 )
 
+print('Initialization done')
+
 while True:
     bypass, charge, both = cc()
 
@@ -24,13 +26,6 @@ while True:
     if both:
         charge_pin.state = 0
         bypass_pin.state = 0
-    # Physical design not sufficient for this
-    # elif not both & charge:
-    #     charge_pin.state = 1
-    #     bypass_pin.state = 0
-    # elif not both & bypass:
-    #     charge_pin.state = 0
-    #     bypass_pin.state = 1
     else:
         charge_pin.state = 1
         bypass_pin.state = 1
