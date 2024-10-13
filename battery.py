@@ -14,7 +14,7 @@ bypass_pin.function = GPIO.OUT
 cc = CheckCharge(
     threshold_bypass=.1,
     threshold_charge=.1,
-    history=timedelta(minutes=15)
+    history=timedelta(minutes=30)
 )
 
 print('Initialization done')
