@@ -62,7 +62,7 @@ class CheckCharge:
     base_date = datetime(1970, 1, 1)
     data_path = os.path.join('_data', 'P1')
 
-    def __init__(self, threshold_bypass: float=.1, threshold_charge: float=.1, history: timedelta=timedelta(minutes=15)):
+    def __init__(self, threshold_bypass: float=.1, threshold_charge: float=.1, history: timedelta=timedelta(minutes=30)):
         self._dates  = []
         self._values = []
 
@@ -114,16 +114,16 @@ class CheckCharge:
         pol = np.polynomial.Polynomial.fit(self._dates, self._values, 1)
         _p = pol((datetime.now()-self.base_date).total_seconds()+self.history.total_seconds())
         _m = np.mean(self._values)
-        bypass = all([(_m - self.t_bypass)>0, _p>0,])
-        charge = all([(_m - self.t_charge)>0, _p>0,])
-        both   = all([(_m - (self.t_charge + self.t_bypass))>0, _p>0,])
+        bypass = (_m - self.t_bypass)>0, _p>0,
+        charge = (_m - self.t_charge)>0, _p>0,
+        both   = (_m - (self.t_charge + self.t_bypass))>0, _p>0,
         print(
             f'Latest date: {datetime.fromtimestamp(self._dates[-1])} with value {self._values[-1]:.2f} - '
-            f'With a mean of {_m:.2f} in the period and a prediction of {_p:.2f} at the end the coming period',
+            f'A mean of {_m:.2f} in the over last period and a prediction of {_p:.2f} at the end the coming period - ',
             f'Bypass {bypass}, Charging {charge}, Both {both}'
         )
 
-        return bypass, charge, both
+        return all(bypass), all(charge), all(both)
 
 
 # == RPI interaction objects ==
