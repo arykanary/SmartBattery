@@ -119,6 +119,7 @@ class CheckCharge:
         both   = all([(_m - (self.t_charge + self.t_bypass))>0, _p>0,])
         print(
             f'Latest date: {datetime.fromtimestamp(self._dates[-1])} with value {self._values[-1]:.2f} - '
+            f'With a mean of {_m:.2f} in the period and a prediction of {_p:.2f} at the end the coming period',
             f'Bypass {bypass}, Charging {charge}, Both {both}'
         )
 
