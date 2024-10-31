@@ -21,7 +21,7 @@ convert_max_pin = RpiPin(24)
 convert_min_pin.function = GPIO.OUT
 convert_max_pin.function = GPIO.OUT
 
-bypass_min_pin.state = bypass_min_pin.state = 1
+bypass_min_pin.state = bypass_max_pin.state = 1
 charge_min_pin.state = charge_max_pin.state = 1
 convert_min_pin.state = convert_max_pin.state = 1
 
@@ -39,7 +39,7 @@ while True:
 
     # State changes
     charge_min_pin.state = charge_max_pin.state = charge
-    bypass_min_pin.state = bypass_min_pin.state = both
+    bypass_min_pin.state = bypass_max_pin.state = both
     
     convert_min_pin.state = convert_max_pin.state = not bypass_min_pin.state
 
