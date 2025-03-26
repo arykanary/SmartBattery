@@ -364,6 +364,28 @@ class SmartMeter:
         self.port, self.baudrate, self.bytesize, self.parity = port, baudrate, bytesize, parity
         self.stopbits, self.timeout, self.xonxoff, self.rtscts = stopbits, timeout, xonxoff, rtscts
 
+    def read_meter(self):
+        out = []
+        with serial.Serial(
+            port=self.port,
+            baudrate=self.baudrate,
+            bytesize=self.bytesize,
+            parity=self.parity,
+            stopbits=self.stopbits,
+            timeout=self.timeout,
+            xonxoff=self.xonxoff,
+            rtscts=self.rtscts,
+        ) as ser:
+            while True:
+                telegram_line = ser.readline()
+                item = telegram_line.decode('ascii').strip()
+                out.append(item)
+
+                if re.match(b'(?=!)', telegram_line):
+                    break
+
+        return out
+
     def transform_item(self, a):
         try:
             ki = a.index('(')
