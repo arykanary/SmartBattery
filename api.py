@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from time import sleep
 
+# RPI specific stuff
+import serial
+
 
 class SmartMeter:
     """This class handles all interactions with the local smart meter to get the data about current use, day/night, etc."""

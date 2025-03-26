@@ -1,21 +1,21 @@
-from time import sleep
-import RPi.GPIO as GPIO
-from datetime import timedelta
-
 import os
 import requests
 import numpy as np
-from datetime import datetime, timedelta
 import json
 import warnings
+from time import sleep
+from datetime import datetime, timedelta
 
 # RPI specific stuff
+import serial
 import RPi.GPIO as GPIO
 import busio
 import digitalio
 import board
 import adafruit_mcp3xxx.mcp3004 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
+
+
 
 
 class CheckCharge:
